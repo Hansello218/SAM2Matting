@@ -132,6 +132,7 @@ INPUT_MASKS/
 
 - `--images`：原始 RGB 图像目录；
 - `--masks`：SAM2 粗分割 mask 目录；
+- `--output`：输出根目录，程序会在其中创建 `images/` 和 `masks/`；
 - 粗 mask 默认以 `128` 为阈值转为二值提示；
 - 如果 mask 尺寸与 RGB 不同，程序会使用最近邻插值对齐；
 - 找不到同 stem mask 的图像会被跳过并计入 `Missing mask`。
