@@ -1,0 +1,41 @@
+# Model weights
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.engine
+checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+build/
+dist/
+
+# Environments
+.env
+.env.*
+.venv/
+venv/
+
+# IDE and system files
+.vscode/
+.idea/
+.DS_Store
+
+# Runtime outputs
+output/
+outputs/
+results/
+runs/
+logs/
+wandb/
+*.log
+events.out.tfevents.*
+
+# Temporary files
+*.tmp
+*.bak
