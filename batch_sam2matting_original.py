@@ -280,7 +280,9 @@ def save_result(
     stem: str,
     output_images_dir: Path,
     output_masks_dir: Path,
+    output_root: Path,
     jpeg_quality: int,
+    cover_index: int,
 ):
     """
     输出：
@@ -290,6 +292,9 @@ def save_result(
 
     output/masks/<stem>.png
         连续 alpha。
+
+    output/cover.png
+        当 stem 对应 cover_index 时，额外保存透明背景 RGBA 人物图。
     """
     rgb = np.asarray(
         image.convert("RGB"),
@@ -350,6 +355,34 @@ def save_result(
         subsampling=0,
         optimize=True,
     )
+
+    # --------------------------------------------------------
+    # Transparent cover PNG (RGBA)
+    # --------------------------------------------------------
+
+    try:
+        numeric_stem = int(stem)
+    except ValueError:
+        numeric_stem = None
+
+    if numeric_stem == cover_index:
+        cover_rgba = np.concatenate(
+            [rgb, alpha_u8[..., None]],
+            axis=2,
+        )
+
+        cover_path = output_root / "cover.png"
+
+        Image.fromarray(
+            cover_rgba,
+            mode="RGBA",
+        ).save(
+            cover_path
+        )
+
+        print(
+            f"       [COVER] saved transparent cover: {cover_path}"
+        )
 
     print(
         f"       [OK] "
@@ -435,6 +468,15 @@ def parse_args():
         action="store_true",
         help=(
             "覆盖已经存在的输出。"
+        ),
+    )
+
+    parser.add_argument(
+        "--cover_index",
+        type=int,
+        default=29,
+        help=(
+            "将指定编号图片额外导出为透明背景人物图 cover.png。默认 29。"
         ),
     )
 
@@ -715,10 +757,28 @@ def main():
                 / f"{stem}.png"
             )
 
+            try:
+                numeric_stem = int(stem)
+            except ValueError:
+                numeric_stem = None
+
+            cover_path = output_root / "cover.png"
+            is_cover = numeric_stem == args.cover_index
+
+            normal_output_exists = (
+                output_image_path.is_file()
+                and output_mask_path.is_file()
+            )
+
+            cover_output_exists = (
+                (not is_cover)
+                or cover_path.is_file()
+            )
+
             if (
                 not args.overwrite
-                and output_image_path.is_file()
-                and output_mask_path.is_file()
+                and normal_output_exists
+                and cover_output_exists
             ):
 
                 print(
@@ -827,15 +887,11 @@ def main():
                     image=image,
                     alpha=alpha,
                     stem=stem,
-                    output_images_dir=(
-                        output_images_dir
-                    ),
-                    output_masks_dir=(
-                        output_masks_dir
-                    ),
-                    jpeg_quality=(
-                        args.jpeg_quality
-                    ),
+                    output_images_dir=output_images_dir,
+                    output_masks_dir=output_masks_dir,
+                    output_root=output_root,
+                    jpeg_quality=args.jpeg_quality,
+                    cover_index=args.cover_index,
                 )
 
                 processed += 1
